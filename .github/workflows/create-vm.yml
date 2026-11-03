@@ -53,6 +53,7 @@ jobs:
           echo "${{ secrets.SSH_PUBLIC_KEY }}" | tr -d '\r\n' > /home/runner/my_ssh_key.pub
           echo "" >> /home/runner/my_ssh_key.pub
 
+          DISCORD_WEBHOOK="${{ secrets.DISCORD_WEBHOOK_URL }}"
           END_TIME=$((SECONDS + 21000)) # 5h 50m = 21000 segundos
           SUCCESS=0
           ATTEMPT=1
@@ -77,6 +78,15 @@ jobs:
               echo "¡ÉXITO! Máquina creada."
               SUCCESS=1
               break
+            fi
+
+            # Notificación de heartbeat a Discord cada 80 intentos (~1 hora)
+            if (( ATTEMPT % 80 == 0 )); then
+              ELAPSED_H=$(( (SECONDS) / 3600 ))
+              ELAPSED_M=$(( (SECONDS % 3600) / 60 ))
+              curl -s -X POST "$DISCORD_WEBHOOK" \
+                -H "Content-Type: application/json" \
+                -d "{\"content\": \"⏳ Sigo buscando servidor en Oracle... (Intento #$ATTEMPT | Tiempo transcurrido: ${ELAPSED_H}h ${ELAPSED_M}m)\"}"
             fi
 
             echo "Fallo (probablemente falta de capacidad). Esperando 45 segundos..."
