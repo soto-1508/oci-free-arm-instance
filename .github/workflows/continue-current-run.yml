@@ -1,0 +1,20 @@
+name: Continue current OCI VM run
+
+on:
+  workflow_run:
+    workflows: ["Try to Create OCI VM"]
+    types: [completed]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  continue:
+    if: github.event.workflow_run.head_sha == '1d2d087447506c076d2c6d7341ed85116f49e5ea'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Queue updated workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run create-vm.yml --repo "${{ github.repository }}" --ref main
