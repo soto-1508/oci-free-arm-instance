@@ -1,7 +1,7 @@
 name: Try to Create OCI VM
-# Each run queues the next one when it finishes.
 on:
-  # Allows you to manually run this workflow from the Actions tab
+  schedule:
+    - cron: '10 */6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -19,8 +19,9 @@ env:
   OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
 
 jobs:
-  build-and-deploy:
+  create-vm:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     steps:
       - name: Cache pip packages
         id: cache-pip
@@ -90,9 +91,9 @@ jobs:
                 -d "{\"content\": \"⏳ Sigo buscando servidor en Oracle... (Intento #$ATTEMPT | Tiempo transcurrido: ${ELAPSED_H}h ${ELAPSED_M}m)\"}"
             fi
 
-            echo "Fallo (probablemente falta de capacidad). Esperando 45 segundos..."
+            echo "Fallo (probablemente falta de capacidad). Esperando 5 minutos..."
             ATTEMPT=$((ATTEMPT + 1))
-            sleep 45
+            sleep 300
           done
 
           # Store the log as a GitHub step output
@@ -124,10 +125,3 @@ jobs:
             ```json
             ${{ steps.create_vm.outputs.log_data }}
             ```
-
-
-      - name: Queue next run
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run create-vm.yml --repo "${{ github.repository }}" --ref "${{ github.ref_name }}"
