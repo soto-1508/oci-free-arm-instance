@@ -1,11 +1,12 @@
 name: Try to Create OCI VM
-# It will run every 5 minutes.
+# Each run queues the next one when it finishes.
 on:
-  schedule:
-    # Avoid the busiest top-of-hour scheduling window.
-    - cron: "2 */6 * * *"
   # Allows you to manually run this workflow from the Actions tab
   workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
 env:
   COMPARTMENT_ID: ${{ secrets.OCI_CLI_TENANCY }}
   IMAGE_ID: ${{ secrets.OCI_CLI_IMAGE_ID }}
@@ -123,3 +124,10 @@ jobs:
             ```json
             ${{ steps.create_vm.outputs.log_data }}
             ```
+
+
+      - name: Queue next run
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run create-vm.yml --repo "${{ github.repository }}" --ref "${{ github.ref_name }}"
