@@ -3,7 +3,7 @@ name: Try to Create OCI VM
 on:
   schedule:
     # Avoid the busiest top-of-hour scheduling window.
-    - cron: "2-59/5 * * * *"
+    - cron: "2 */6 * * *"
   # Allows you to manually run this workflow from the Actions tab
   workflow_dispatch:
 env:
